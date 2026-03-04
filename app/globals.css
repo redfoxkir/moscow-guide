@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 20% 98%;
+  --foreground: 222 47% 11%;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+}
+
+.page-shell {
+  @apply min-h-screen flex flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-50;
+}
+
+.page-shell-main {
+  @apply flex-1;
+}
+
+.glass {
+  @apply bg-slate-900/60 backdrop-blur-xl border border-slate-800/70 shadow-soft;
+}
+
