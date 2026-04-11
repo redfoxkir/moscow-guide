@@ -148,7 +148,7 @@ export default function HomePage() {
             </a>
           </Button>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 max-w-4xl">
+        <div className="grid gap-4 sm:grid-cols-2 max-w-4xl mx-auto">
           {cityRoutes.map((route) => (
             <Card key={route.slug}>
               <CardHeader>
