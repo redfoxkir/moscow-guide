@@ -118,6 +118,8 @@ export default function RoutePage({ params }: RoutePageProps) {
                       ? "h-9 w-9 bg-gradient-to-tr from-orange-500 to-amber-300 text-slate-900 ring-2 ring-amber-300/40 shadow-lg shadow-orange-500/30 scale-110"
                       : isPast
                       ? "h-7 w-7 bg-gradient-to-tr from-orange-600/80 to-amber-400/80 text-slate-900"
+                      : isNext
+                      ? "h-7 w-7 bg-slate-800 text-amber-400/60 ring-1 ring-amber-400/30 hover:bg-slate-700"
                       : "h-7 w-7 bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300"
                   ].join(" ")}
                   title={step.title}
@@ -127,20 +129,28 @@ export default function RoutePage({ params }: RoutePageProps) {
 
                 {/* Connecting line */}
                 {index < route.steps.length - 1 && (
-                  <div className="relative mx-1 h-0.5 w-10 sm:w-14 overflow-hidden rounded-full">
-                    <div className="absolute inset-0 bg-slate-700" />
+                  <div
+                    className={[
+                      "relative mx-1 overflow-hidden rounded-full",
+                      isCurrent ? "h-1.5 w-12 sm:w-16" : "h-0.5 w-10 sm:w-14"
+                    ].join(" ")}
+                  >
+                    {/* base track */}
+                    <div className="absolute inset-0 bg-slate-800 rounded-full" />
+
+                    {/* past: solid filled */}
                     {isPast && (
                       <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-400" />
                     )}
+
+                    {/* current → next: pulsing dashed amber line */}
                     {isCurrent && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-amber-400/70 to-slate-600/40" />
-                    )}
-                    {isNext && (
                       <div
-                        className="absolute inset-0 opacity-30"
+                        className="absolute inset-0 animate-pulse"
                         style={{
                           backgroundImage:
-                            "repeating-linear-gradient(90deg, #f59e0b 0px, #f59e0b 6px, transparent 6px, transparent 12px)"
+                            "repeating-linear-gradient(90deg, #f59e0b 0px, #f59e0b 7px, transparent 7px, transparent 14px)",
+                          opacity: 0.75
                         }}
                       />
                     )}
