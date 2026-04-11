@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import {
 } from "@/components/ui/card";
 import { cityRoutes, getRouteBySlug } from "@/data/routes";
 
+const RouteMap = dynamic(() => import("@/components/RouteMap"), { ssr: false });
+
 type RoutePageProps = {
   params: {
     slug: string;
@@ -24,20 +27,24 @@ type Coords = [number, number];
 function getStepCoords(slug: string, stepId: string): Coords {
   const coordsByRoute: Record<string, Record<string, Coords>> = {
     "istoricheskiy-centr": {
-      "start-metro":        [55.7563, 37.6226],
-      "krasnaya-ploshchad": [55.7539, 37.6208],
-      zaryadye:             [55.7523, 37.6286],
-      "kitay-gorod":        [55.7546, 37.6331],
-      "alexandrovskiy-sad": [55.7516, 37.6127],
-      teatralnaya:          [55.7601, 37.6186]
+      "start-metro":           [55.7563, 37.6226],
+      "aleksandrovskiy-sad":   [55.7516, 37.6127],
+      "krasnaya-ploshchad":    [55.7539, 37.6208],
+      "vasiliy-blazhenniy":    [55.7525, 37.6234],
+      "zaryadye":              [55.7523, 37.6286],
+      "varvarka":              [55.7519, 37.6272],
+      "kitay-gorod":           [55.7546, 37.6331],
+      "lubyanskaya-ploshchad": [55.7576, 37.6263],
     },
     "parki-i-naberezhnye": {
       "start-metro":    [55.7352, 37.6108],
       "park-gorkogo":   [55.7309, 37.6011],
+      "krymskiy-most":  [55.7362, 37.5961],
+      "muzeon":         [55.7341, 37.6019],
       "neskuchniy-sad": [55.7189, 37.5930],
-      most:             [55.7166, 37.5817],
       "vorobyovy-gory": [55.7094, 37.5441],
-      luzhniki:         [55.7156, 37.5543]
+      "luzhniki":       [55.7156, 37.5543],
+      "most":           [55.7285, 37.5872],
     }
   };
 
@@ -46,11 +53,6 @@ function getStepCoords(slug: string, stepId: string): Coords {
   return byRoute[stepId] ?? [55.7558, 37.6176];
 }
 
-function buildOsmEmbedUrl([lat, lng]: Coords) {
-  const deltaLat = 0.02;
-  const deltaLng = 0.03;
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${lng - deltaLng},${lat - deltaLat},${lng + deltaLng},${lat + deltaLat}&layer=mapnik&marker=${lat},${lng}`;
-}
 
 export default function RoutePage({ params }: RoutePageProps) {
   const route = useMemo(() => getRouteBySlug(params.slug), [params.slug]);
@@ -64,7 +66,8 @@ export default function RoutePage({ params }: RoutePageProps) {
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === route.steps.length - 1;
   const currentCoords = getStepCoords(route.slug, currentStep.id);
-  const mapUrl = buildOsmEmbedUrl(currentCoords);
+  const nextStep = !isLast ? route.steps[stepIndex + 1] : null;
+  const nextCoords = nextStep ? getStepCoords(route.slug, nextStep.id) : null;
 
   const goPrev = () => { if (!isFirst) setStepIndex((i) => i - 1); };
   const goNext = () => { if (!isLast) setStepIndex((i) => i + 1); };
@@ -238,14 +241,15 @@ export default function RoutePage({ params }: RoutePageProps) {
 
             <div className="space-y-2">
               <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
-                Карта текущей точки
+                Карта{nextStep ? ` · до ${nextStep.title}` : ""}
               </p>
               <div className="h-44 sm:h-56 rounded-xl overflow-hidden border border-slate-800/80 bg-slate-950">
-                <iframe
+                <RouteMap
                   key={`${route.slug}-${currentStep.id}`}
-                  title={`Карта шага ${currentStep.title}`}
-                  src={mapUrl}
-                  className="h-full w-full"
+                  currentCoords={currentCoords}
+                  nextCoords={nextCoords}
+                  currentLabel={currentStep.title}
+                  nextLabel={nextStep?.title ?? null}
                 />
               </div>
             </div>
