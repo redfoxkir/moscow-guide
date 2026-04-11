@@ -240,10 +240,27 @@ export default function RoutePage({ params }: RoutePageProps) {
             </p>
 
             <div className="space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
-                Карта{nextStep ? ` · до ${nextStep.title}` : ""}
-              </p>
-              <div className="h-44 sm:h-56 rounded-xl overflow-hidden border border-slate-800/80 bg-slate-950">
+              {/* Map header with from→to */}
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="inline-flex items-center gap-1.5 text-slate-300 font-medium">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-gradient-to-tr from-orange-500 to-amber-300 flex-shrink-0" />
+                  {currentStep.title}
+                </span>
+                {nextStep && (
+                  <>
+                    <ArrowRight className="h-3 w-3 text-amber-400/60 flex-shrink-0" />
+                    <span className="inline-flex items-center gap-1.5 text-amber-400/70">
+                      <span className="inline-block h-2 w-2 rounded-full border border-amber-400/70 flex-shrink-0" />
+                      {nextStep.title}
+                    </span>
+                  </>
+                )}
+                {!nextStep && (
+                  <span className="ml-auto text-emerald-400/70">финальная точка</span>
+                )}
+              </div>
+
+              <div className="h-52 sm:h-64 rounded-xl overflow-hidden border border-slate-800/80 bg-slate-950">
                 <RouteMap
                   key={`${route.slug}-${currentStep.id}`}
                   currentCoords={currentCoords}
@@ -251,6 +268,20 @@ export default function RoutePage({ params }: RoutePageProps) {
                   currentLabel={currentStep.title}
                   nextLabel={nextStep?.title ?? null}
                 />
+              </div>
+
+              {/* Map legend */}
+              <div className="flex items-center gap-4 text-[10px] text-slate-500 px-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2 w-2 rounded-full bg-gradient-to-tr from-orange-500 to-amber-300" />
+                  Вы здесь
+                </span>
+                {nextStep && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-6 rounded-full border-t-2 border-dashed border-amber-400/60" />
+                    Следующая точка
+                  </span>
+                )}
               </div>
             </div>
 
