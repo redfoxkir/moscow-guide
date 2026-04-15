@@ -160,8 +160,6 @@ export default function RouteMap({ currentCoords, nextCoords, currentLabel, next
             [Math.max(...lngs), Math.max(...lats)]
           );
           map.fitBounds(bounds, { padding: 52, maxZoom: 16 });
-        } else {
-          map.setView?.([lat, lng]);
         }
       });
     };
