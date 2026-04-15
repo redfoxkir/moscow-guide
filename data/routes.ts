@@ -219,6 +219,7 @@ export const cityRoutes: CityRoute[] = [
         ]
       }
     ]
+  },
   // archived routes are in data/routes-archive.ts
   /* {
     slug: "moskva-podzemnaya",
