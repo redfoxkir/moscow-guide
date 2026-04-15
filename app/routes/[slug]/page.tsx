@@ -46,15 +46,7 @@ function getStepCoords(slug: string, stepId: string): Coords {
       "luzhniki":       [55.7156, 37.5543],
       "most":           [55.7285, 37.5872],
     },
-    "moskva-podzemnaya": {
-      "mayakovskaya":          [55.7767, 37.5954],
-      "novoslobodskaya":       [55.7797, 37.5953],
-      "komsomolskaya":         [55.7757, 37.6567],
-      "elektrozavodskaya":     [55.7803, 37.6998],
-      "ploschad-revolyutsii":  [55.7563, 37.6226],
-      "kievskaya":             [55.7434, 37.5667],
-      "arbatskaya":            [55.7517, 37.5993],
-    }
+    // "moskva-podzemnaya" coords are in data/routes-archive.ts
   };
 
   const byRoute = coordsByRoute[slug];
@@ -180,30 +172,8 @@ export default function RoutePage({ params }: RoutePageProps) {
 
       {/* Main content */}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-start">
-        <Card>
-          <CardHeader>
-            <CardTitle>Старт маршрута</CardTitle>
-            <CardDescription>
-              Все маршруты начинаются от понятной точки в городе — чаще всего от
-              станции метро. Далее вы двигаетесь по шагам с фактами про каждое место.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-xs sm:text-sm">
-            <p>
-              Для этого маршрута стартовая точка —{" "}
-              <span className="font-medium text-slate-100">{route.startPoint}</span>.
-              На карте это будет отдельный маркер, но сейчас маршрут проходит только
-              через кнопки.
-            </p>
-            <p className="text-slate-400">
-              На следующих шагах вы последовательно переходите от одной точки к другой:
-              никакой геолокации, только понятные описания и факты. Это удобно, если вы
-              в роуминге или просто не хотите включать GPS.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden">
+        {/* Step card — on mobile comes first, on desktop goes to second column via order */}
+        <Card className="relative overflow-hidden lg:order-2">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -320,6 +290,28 @@ export default function RoutePage({ params }: RoutePageProps) {
                 {!isLast && <ArrowRight className="ml-1.5 h-3.5 w-3.5" />}
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Info card — hidden on mobile, visible on desktop as first column */}
+        <Card className="hidden lg:block lg:order-1">
+          <CardHeader>
+            <CardTitle>Старт маршрута</CardTitle>
+            <CardDescription>
+              Все маршруты начинаются от понятной точки в городе — чаще всего от
+              станции метро. Далее вы двигаетесь по шагам с фактами про каждое место.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-xs sm:text-sm">
+            <p>
+              Для этого маршрута стартовая точка —{" "}
+              <span className="font-medium text-slate-100">{route.startPoint}</span>.
+            </p>
+            <p className="text-slate-400">
+              На следующих шагах вы последовательно переходите от одной точки к другой:
+              никакой геолокации, только понятные описания и факты. Это удобно, если вы
+              в роуминге или просто не хотите включать GPS.
+            </p>
           </CardContent>
         </Card>
       </div>

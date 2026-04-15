@@ -219,8 +219,8 @@ export const cityRoutes: CityRoute[] = [
         ]
       }
     ]
-  },
-  {
+  // archived routes are in data/routes-archive.ts
+  /* {
     slug: "moskva-podzemnaya",
     name: "Подземная Москва",
     tagline: "Маршрут по самым необычным станциям метро.",
@@ -309,7 +309,7 @@ export const cityRoutes: CityRoute[] = [
         ]
       }
     ]
-  }
+  } */
 ];
 
 export function getRouteBySlug(slug: string): CityRoute | undefined {
