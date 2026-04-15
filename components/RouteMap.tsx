@@ -49,26 +49,96 @@ export default function RouteMap({ currentCoords, nextCoords, currentLabel, next
 
       mapRef.current = map;
 
-      map.on("load", () => {
-        // Draw dashed line to next point
+      map.on("load", async () => {
+        // Markers
+        const addMarker = (coords: [number, number], color: string, size: number, label: string, popupOffset: number) => {
+          const el = document.createElement("div");
+          el.style.cssText = `
+            width:${size}px;height:${size}px;
+            background:${color};
+            border:2px solid #fff;
+            border-radius:50%;
+            box-shadow:0 0 0 3px rgba(251,191,36,0.3),0 2px 6px rgba(0,0,0,0.4);
+            cursor:pointer;
+          `;
+          new maplibregl.Marker({ element: el })
+            .setLngLat(coords)
+            .setPopup(new maplibregl.Popup({ offset: popupOffset, closeButton: false }).setText(label))
+            .addTo(map);
+        };
+
+        addMarker([lng, lat], "linear-gradient(135deg,#f97316,#fbbf24)", 14, currentLabel, 16);
+
         if (nextCoords) {
           const [nLat, nLng] = nextCoords;
+          addMarker([nLng, nLat], "rgba(251,191,36,0.5)", 11, nextLabel ?? "", 14);
+
+          // Decode Valhalla's encoded polyline (precision 6)
+          const decodePolyline = (str: string): [number, number][] => {
+            let i = 0, lat = 0, lon = 0;
+            const coords: [number, number][] = [];
+            while (i < str.length) {
+              let shift = 0, result = 0, b;
+              do { b = str.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+              lat += result & 1 ? ~(result >> 1) : result >> 1;
+              shift = 0; result = 0;
+              do { b = str.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+              lon += result & 1 ? ~(result >> 1) : result >> 1;
+              coords.push([lon / 1e6, lat / 1e6]);
+            }
+            return coords;
+          };
+
+          // Fetch pedestrian route from Valhalla (free, no API key, real walking paths)
+          let routeCoords: [number, number][] | null = null;
+          try {
+            const res = await fetch("https://valhalla1.openstreetmap.de/route", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                locations: [
+                  { lon: lng, lat: lat },
+                  { lon: nLng, lat: nLat },
+                ],
+                costing: "pedestrian",
+                directions_options: { units: "km" },
+              }),
+            });
+            const data = await res.json();
+            const shape = data?.trip?.legs?.[0]?.shape;
+            if (shape) {
+              routeCoords = decodePolyline(shape);
+            }
+          } catch (e) {
+            console.error("Valhalla routing failed:", e);
+          }
+
+          // Fallback: straight line
+          const lineCoords: [number, number][] = routeCoords ?? [[lng, lat], [nLng, nLat]];
 
           map.addSource("route-line", {
             type: "geojson",
             data: {
               type: "Feature",
-              geometry: {
-                type: "LineString",
-                coordinates: [
-                  [lng, lat],
-                  [nLng, nLat],
-                ],
-              },
+              geometry: { type: "LineString", coordinates: lineCoords },
               properties: {},
             },
           });
 
+          // Outer glow layer
+          map.addLayer({
+            id: "route-line-glow",
+            type: "line",
+            source: "route-line",
+            paint: {
+              "line-color": "#f59e0b",
+              "line-width": 8,
+              "line-opacity": 0.15,
+              "line-blur": 4,
+            },
+          });
+
+          // Main route line
           map.addLayer({
             id: "route-line-layer",
             type: "line",
@@ -76,50 +146,22 @@ export default function RouteMap({ currentCoords, nextCoords, currentLabel, next
             paint: {
               "line-color": "#f59e0b",
               "line-width": 3,
-              "line-opacity": 0.6,
-              "line-dasharray": [2, 3],
+              "line-opacity": 0.75,
+              "line-dasharray": [1.5, 2],
             },
           });
 
-          // Fit bounds to show both points
+          // Fit bounds
+          const allCoords = lineCoords;
+          const lngs = allCoords.map(c => c[0]);
+          const lats = allCoords.map(c => c[1]);
           const bounds = new maplibregl.LngLatBounds(
-            [Math.min(lng, nLng), Math.min(lat, nLat)],
-            [Math.max(lng, nLng), Math.max(lat, nLat)]
+            [Math.min(...lngs), Math.min(...lats)],
+            [Math.max(...lngs), Math.max(...lats)]
           );
           map.fitBounds(bounds, { padding: 52, maxZoom: 16 });
-        }
-
-        // Current point marker
-        const currentEl = document.createElement("div");
-        currentEl.style.cssText = `
-          width:14px;height:14px;
-          background:linear-gradient(135deg,#f97316,#fbbf24);
-          border:2px solid #fff;
-          border-radius:50%;
-          box-shadow:0 0 0 3px rgba(251,191,36,0.35),0 2px 6px rgba(0,0,0,0.4);
-        `;
-        new maplibregl.Marker({ element: currentEl })
-          .setLngLat([lng, lat])
-          .setPopup(new maplibregl.Popup({ offset: 16, closeButton: false })
-            .setText(currentLabel))
-          .addTo(map);
-
-        // Next point marker (semi-transparent)
-        if (nextCoords) {
-          const [nLat, nLng] = nextCoords;
-          const nextEl = document.createElement("div");
-          nextEl.style.cssText = `
-            width:11px;height:11px;
-            background:rgba(251,191,36,0.4);
-            border:2px solid rgba(251,191,36,0.7);
-            border-radius:50%;
-            box-shadow:0 0 0 2px rgba(251,191,36,0.15);
-          `;
-          new maplibregl.Marker({ element: nextEl })
-            .setLngLat([nLng, nLat])
-            .setPopup(new maplibregl.Popup({ offset: 14, closeButton: false })
-              .setText(nextLabel ?? ""))
-            .addTo(map);
+        } else {
+          map.setView?.([lat, lng]);
         }
       });
     };
