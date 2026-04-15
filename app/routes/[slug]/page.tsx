@@ -45,6 +45,15 @@ function getStepCoords(slug: string, stepId: string): Coords {
       "vorobyovy-gory": [55.7094, 37.5441],
       "luzhniki":       [55.7156, 37.5543],
       "most":           [55.7285, 37.5872],
+    },
+    "moskva-podzemnaya": {
+      "mayakovskaya":          [55.7767, 37.5954],
+      "novoslobodskaya":       [55.7797, 37.5953],
+      "komsomolskaya":         [55.7757, 37.6567],
+      "elektrozavodskaya":     [55.7803, 37.6998],
+      "ploschad-revolyutsii":  [55.7563, 37.6226],
+      "kievskaya":             [55.7434, 37.5667],
+      "arbatskaya":            [55.7517, 37.5993],
     }
   };
 
